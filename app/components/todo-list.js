@@ -1,16 +1,31 @@
 import Ember from 'ember';
 import hbs from 'htmlbars-inline-precompile';
+import Redux from 'npm:redux';
+
+var { createStore } = Redux;
+
+var reducer = ((state=[], action) => {
+    if(action.type === 'ADD') {
+        return state.concat({name: 'added'});
+    }
+    return state;
+});
+
+var store = createStore(reducer);
 
 var TodoListComponent = Ember.Component.extend({
-    todos: Ember.computed(function() {
-        return Ember.ArrayProxy.create({
-            content: []
+    init: function() {
+        this._super(...arguments);
+        store.subscribe(() => {
+            this.notifyPropertyChange('todos');
         });
+    },
+    todos: Ember.computed(function() {
+        return store.getState();
     }),
     actions: {
         add: function() {
-            var todo = Ember.Object.create({name: 'added'});
-            this.get('todos').pushObject(todo);
+            store.dispatch({type: 'ADD'});
         }
     },
     layout: hbs`
